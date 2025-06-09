@@ -72,3 +72,7 @@
   snprintf(cmd, sizeof(cmd), "./%s", binname); \
   system(cmd); \
 }
+
+#define exec(cmd) { \
+  system(cmd); \
+} 

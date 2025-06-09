@@ -26,5 +26,6 @@ start
   ascompile    // Assemble .s files into .o files
   link         // Link all object files into final binary
   run          // Run the resulting binary
+  exec("do something")   // Executing a command
 end
 
