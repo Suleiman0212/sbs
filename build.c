@@ -1,34 +1,27 @@
-#include "build.h"
+# include "build.h"
 
-// Set C compiler and its flags
-$cc("gcc -Wall -Wextra -O2 -std=c17 -ffreestanding -fno-pie -fno-stack-protector")
+// Set compiler and flags
+$cc("gcc -Wall -Wextra -O2 -std=c11 -ffreestanding -fno-pie -fno-stack-protector")
+$as("nasm -f elf64")                    // Assembler and flags
+$ld("ld -nostdlib -static -z noexecstack")  // Linker and flags
 
-// Set assembler and its flags
-$as("nasm -f elf64")
+// Set output paths
+$bindir("bin")                          // Binary output directory
+$bin("mybestOS")                        // Output binary name
 
-// Set linker and its flags
-$ld("ld -nostdlib -static -z noexecstack")
+// Add source files
+$csrc("src/file0.c", "src/file1.c")     // C source files
+$assrc("src/file2.s", "src/file3.s")    // Assembly source files
 
-// Set the output binary path and name
-$bindir("bin")
-$bin("bestos")
-
-// Add C source files
-$csrc("src/file0.c", "src/file1.c")
-
-// Add Assembly source files
-$assrc("src/file2.s", "src/file3.s")
-
-// Set output directory for object files
-$outdir("out")
+$outdir("out")                          // Object files directory
 
 start
-  clean        // Delete $outdir and $bindir
-  mkdirs       // Create $outdir and $bindir
-  ccompile     // Compile C source files into .o files
-  ascompile    // Assemble .s files into .o files
-  link         // Link all object files into final binary
-  run          // Run the resulting binary
-  exec("cmd")  // Executing a command
+    clean                               // Clean previous builds
+    mkdirs                              // Create output directories
+    ccompile                            // Compile C sources
+    ascompile                           // Assemble ASM sources
+    link                                // Link object files
+    install                             // Install to ~/.local/bin
+    run                                 // Run the resulting binary
+    exec("echo Build completed!")       // Execute custom command
 end
-

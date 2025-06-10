@@ -77,6 +77,21 @@
   printf("-----LINKING FINISHED-----\n\n"); \
 }
 
+#define install { \
+  printf("\n-----INSTALLING STARTED-----\n"); \
+  char cmd[256] = {0}; \
+  snprintf(cmd, sizeof(cmd), "mkdir -p ~/.local/bin/"); \
+  printf("EXECUTING: %s\n", cmd); \
+  system(cmd); \
+  snprintf(cmd, sizeof(cmd), "rm ~/.local/bin/%s", binname); \
+  printf("EXECUTING: %s\n", cmd); \
+  system(cmd); \
+  snprintf(cmd, sizeof(cmd), "cp %s/%s ~/.local/bin/", bindir, binname); \
+  printf("EXECUTING: %s\n", cmd); \
+  system(cmd); \
+  printf("-----INSTALLING FINISHED-----\n\n"); \
+} \
+
 #define clean { \
   char cmd[1024 * 10] = {0}; \
   snprintf(cmd, sizeof(cmd), "rm -rf %s %s", outdir, bindir); \
