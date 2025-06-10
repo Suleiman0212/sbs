@@ -14,10 +14,18 @@
 #define $assrc(...) const char *assrc[] = { __VA_ARGS__ };
 
 #define $outdir(path) const char *outdir = path;
+#define $bindir(name) const char *bindir = name;
 #define $bin(name) const char *binname = name;
 
+#define mkdirs { \
+  char cmd[256] = {0}; \
+  snprintf(cmd, sizeof(cmd), "mkdir -p %s %s", outdir, bindir); \
+  printf("- EXECUTING: %s\n", cmd); \
+  system(cmd); \
+}
+
 #define ccompile { \
-  printf("C COMPILATION STARTED.\n"); \
+  printf("\n-----C COMPILATION STARTED-----\n"); \
   for (int i = (int)(sizeof(csrc) / sizeof(csrc[0])) - 1; i >= 0; i--) { \
     char cmd[256] = {0}; \
     char objname[128] = {0}; \
@@ -27,18 +35,19 @@
     char *dot = strrchr(objname, '.'); \
     if (dot) *dot = '\0'; \
     snprintf(objname + strlen(objname), sizeof(objname) - strlen(objname), ".o"); \
-    snprintf(cmd, sizeof(cmd), "%s -c %s -o %s%s", cc_path, csrc[i], outdir, objname); \
+    snprintf(cmd, sizeof(cmd), "%s -c %s -o %s/%s", cc_path, csrc[i], outdir, objname); \
     printf("EXECUTING: %s\n", cmd); \
     system(cmd); \
     strcat(objsrc, outdir); \
+    strcat(objsrc, "/"); \
     strcat(objsrc, objname); \
     strcat(objsrc, " "); \
   } \
-  printf("C COMPILATION FINISHED.\n\n"); \
+  printf("-----C COMPILATION FINISHED-----\n\n"); \
 }
 
 #define ascompile { \
-  printf("ASM COMPILATION STARTED.\n"); \
+  printf("\n-----ASM COMPILATION STARTED-----\n"); \
   for (int i = (int)(sizeof(assrc) / sizeof(assrc[0])) - 1; i >= 0; i--) { \
     char cmd[256] = {0}; \
     char objname[128] = {0}; \
@@ -48,31 +57,41 @@
     char *dot = strrchr(objname, '.'); \
     if (dot) *dot = '\0'; \
     snprintf(objname + strlen(objname), sizeof(objname) - strlen(objname), ".o"); \
-    snprintf(cmd, sizeof(cmd), "%s -c %s -o %s%s", as_path, assrc[i], outdir, objname); \
+    snprintf(cmd, sizeof(cmd), "%s -c %s -o %s/%s", as_path, assrc[i], outdir, objname); \
     printf("EXECUTING: %s\n", cmd); \
     system(cmd); \
     strcat(objsrc, outdir); \
+    strcat(objsrc, "/"); \
     strcat(objsrc, objname); \
     strcat(objsrc, " "); \
   } \
-  printf("ASM COMPILATION FINISHED.\n\n"); \
+  printf("-----ASM COMPILATION FINISHED-----\n\n"); \
 }
 
 #define link { \
-  printf("LINKING STARTED.\n"); \
+  printf("\n-----LINKING STARTED-----\n"); \
   char cmd[1024 * 10] = {0}; \
-  snprintf(cmd, sizeof(cmd), "%s %s -o %s", ld_path, objsrc, binname); \
+  snprintf(cmd, sizeof(cmd), "%s %s -o %s/%s", ld_path, objsrc, bindir, binname); \
   printf("EXECUTING: %s\n", cmd); \
   system(cmd); \
-  printf("LINKING FINISHED.\n\n"); \
+  printf("-----LINKING FINISHED-----\n\n"); \
+}
+
+#define clean { \
+  char cmd[1024 * 10] = {0}; \
+  snprintf(cmd, sizeof(cmd), "rm -rf %s %s", outdir, bindir); \
+  printf("- EXECUTING: %s\n", cmd); \
+  system(cmd); \
 }
 
 #define run { \
   char cmd[256] = {0}; \
-  snprintf(cmd, sizeof(cmd), "./%s", binname); \
+  snprintf(cmd, sizeof(cmd), "%s/%s", bindir, binname); \
+  printf("- EXECUTING: %s\n", cmd); \
   system(cmd); \
 }
 
 #define exec(cmd) { \
+  printf("- EXECUTING: %s\n", cmd); \
   system(cmd); \
-} 
+}
