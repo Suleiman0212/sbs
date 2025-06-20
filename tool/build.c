@@ -10,11 +10,15 @@ $csrc("src/main.c")
 
 $outdir("out")
 
+$projdir("")
+
 start
   clean
   mkdirs
-  ccompile
+  ccompile(false)
   link
   install
+  exec("mkdir -p ~/.sbs/")
+  exec("cp ../build.h ~/.sbs/")
 end
 

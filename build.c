@@ -1,4 +1,4 @@
-# include "build.h"
+#include "build.h"
 
 // Set compiler and flags
 $cc("gcc -Wall -Wextra -O2 -std=c11 -ffreestanding -fno-pie -fno-stack-protector")
@@ -15,10 +15,12 @@ $assrc("src/file2.s", "src/file3.s")    // Assembly source files
 
 $outdir("out")                          // Object files directory
 
+$projdir("proj")
+
 start
     clean                               // Clean previous builds
     mkdirs                              // Create output directories
-    ccompile                            // Compile C sources
+    ccompile(true)                      // Compile C sources
     ascompile                           // Assemble ASM sources
     link                                // Link object files
     install                             // Install to ~/.local/bin

@@ -1,39 +1,42 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "const.h"
 
 void cmdhelp() {
   printf(
     "Available commands:\n"
     "   help - print this\n"
     "   install - add to current dir build.h and build.c\n"
-    "   build - compile(via gcc) and run build.c\n"
-    "   build <compiler> - compile and run build.c\n"
+    "   build <-Darg> - compile(via gcc) and run build.c\n"
+    "   buildd <-Darg> - compile(via gcc) and run build/build.c\n"
   );  
 }
 
 void cmdinstall() {
-  FILE *bh = fopen("build.h", "w");
-  // FILE *bc = fopen("build.c", "w");
-
-  if (!bh) {
-    printf("File open error.");
-    exit(1);
-  }
-  
-  fprintf(bh, "%s", buildh);
-  // fprintf(bc, "%s", buildc);
+  system("cp ~/.sbs/build.h .");
 }
 
-void cmdbuild(char *compiler) {
+void cmdbuild(char *darg) {
   char cmd[256] = {0};
-  if (compiler != NULL) {
-    snprintf(cmd, sizeof(cmd), "%s build.c -o build", compiler);
+  if (darg != NULL) {
+    snprintf(cmd, sizeof(cmd), "gcc -D%s build.c -o build", darg);
     system(cmd);
+    system("./build");
   } else {
-  system("gcc build.c -o build");
-  system("./build");
+    system("gcc build.c -o build");
+    system("./build");
+  }
+}
+
+void cmdbuildd(char *darg) {
+  char cmd[256] = {0};
+  if (darg != NULL) {
+    snprintf(cmd, sizeof(cmd), "gcc -D%s build/build.c -o build/build", darg);
+    system(cmd);
+    system("./build/build");
+  } else {
+    system("gcc build/build.c -o build/build");
+    system("./build/build");
   }
 }
 
@@ -47,6 +50,8 @@ int main(int argc, char *argv[])
     cmdinstall();
   } else if (strcmp(argv[1], "build") == 0) {
     cmdbuild(argv[2]);
+  } else if (strcmp(argv[1], "buildd") == 0) {
+    cmdbuildd(argv[2]);
   } else {
     printf("Unknown command.");
     exit(1);
