@@ -1,0 +1,21 @@
+$PROJECT 'SBS'
+$BUILD_DIR 'build'
+$TARGET 'kernel.elf'
+
+$CC 'gcc'
+$CXX 'g++'
+$AS 'as'
+$LD 'ld'
+
+$CFLAGS '-ffreestanding -02'
+$CXXFLAGS '-std=c++17 -ffreestanding'
+$ASFLAGS '-felf64'
+$LDFLAGS '-Tlink.ld -nostdlib'
+
+$SOURCES [ 'src/main.cpp' 'src/boot.s' ]
+$INCLUDE [ 'include' ]
+$LIBS [ 'SDL2' ]
+
+$DEFINES [ 'DEBUG' 'KERNEL_MODE' ]
+$PRE_BUILD [ 'rm -rf build/*' ]
+$POST_BUILD [ 'qemu-system-x86-64 -kernel build/kernel.elf' ]

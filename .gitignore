@@ -1,4 +1,3 @@
-tool/bin
-tool/build
-tool/out
 build
+sbs
+.cache/

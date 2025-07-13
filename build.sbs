@@ -1,0 +1,13 @@
+$PROJECT 'SBS'
+$BUILD_DIR 'build'
+$TARGET 'sbs'
+
+$CXX 'g++'
+$LD 'g++'
+
+$CXXFLAGS [ '-std=c++20' ]
+
+$SOURCES [ 'src/main.cpp' 'src/lexer.cpp' 'src/interpreter.cpp' 'src/builder.cpp' ]
+$INCLUDE [ 'include' ]
+
+$PRE_BUILD [ 'rm -rf build' ]
