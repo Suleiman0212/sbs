@@ -7,10 +7,10 @@ $CXX 'g++'
 $AS 'as'
 $LD 'ld'
 
-$CFLAGS '-ffreestanding -02'
-$CXXFLAGS '-std=c++17 -ffreestanding'
-$ASFLAGS '-felf64'
-$LDFLAGS '-Tlink.ld -nostdlib'
+$CFLAGS [ '-ffreestanding' '-02' ]
+$CXXFLAGS [ '-std=c++17' '-ffreestanding' ]
+$ASFLAGS [ '-felf64' ]
+$LDFLAGS [ '-Tlink.ld' '-nostdlib' ]
 
 $SOURCES [ 'src/main.cpp' 'src/boot.s' ]
 $INCLUDE [ 'include' ]

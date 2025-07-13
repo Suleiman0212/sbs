@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
   std::string path = "./build.sbs";
 
   if (argc == 2) {
-    path = argv[2];
+    path = argv[1];
   }
 
   std::string data = read_file(path);
