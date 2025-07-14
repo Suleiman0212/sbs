@@ -1,13 +1,13 @@
 #pragma once
 
-#include "interpreter.hpp"
+#include "dsl.hpp"
 
 enum class SourceType { C, CPP, ASM, Unknown };
 
 class Builder {
 public:
-  Builder();
-  ~Builder();
+  Builder() {}
+  ~Builder() {}
 
-  void build(Interpreter it);
+  void build(Consts data);
 };

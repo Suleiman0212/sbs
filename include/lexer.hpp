@@ -19,5 +19,8 @@ struct Token {
 
 class Lexer {
 public:
+  Lexer() {}
+  ~Lexer() {}
+
   std::vector<Token> lex(std::string input);
 };

@@ -1,4 +1,5 @@
 #include "builder.hpp"
+
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -6,6 +7,7 @@
 #include <stdexcept>
 #include <string>
 
+// Return file type.
 SourceType get_source_type(const std::string &path) {
   std::filesystem::path p(path);
   std::string ext = p.extension().string();
@@ -20,6 +22,8 @@ SourceType get_source_type(const std::string &path) {
   return SourceType::Unknown;
 }
 
+// Obj path from ordinary,
+// Like: main.c -> main.o
 std::string to_obj_path(const std::string &src_path) {
   std::filesystem::path p(src_path);
   std::filesystem::path out = "build";
@@ -28,13 +32,10 @@ std::string to_obj_path(const std::string &src_path) {
   return out.string();
 }
 
+// Obsolute path frim relative
 std::string make_absolute(const std::string &rel) {
   return std::filesystem::absolute(rel).string();
 }
-
-Builder::Builder() {}
-
-Builder::~Builder() {}
 
 bool log_enabled = true;
 void log(std::string input) {
@@ -42,6 +43,7 @@ void log(std::string input) {
     std::cout << input << std::endl;
 }
 
+// Execute command
 std::string exec(const std::string &cmd) {
   log(cmd);
   FILE *pipe = popen(cmd.c_str(), "r");
@@ -65,12 +67,13 @@ std::string exec(const std::string &cmd) {
   return result;
 }
 
-std::string cc_cmd(Interpreter &it, const std::string &input,
+// C compiler command
+std::string cc_cmd(Consts &data, const std::string &input,
                    const std::string &output) {
-  const auto cc = it.get_value("CC");
-  const auto cflags = it.get_vector("CFLAGS");
-  const auto includes = it.get_vector("INCLUDE");
-  const auto defines = it.get_vector("DEFINES");
+  const auto cc = data.get_string("CC");
+  const auto cflags = data.get_vector("CFLAGS");
+  const auto includes = data.get_vector("INCLUDE");
+  const auto defines = data.get_vector("DEFINES");
 
   std::string cmd =
       *cc + " -c " + make_absolute(input) + " -o " + make_absolute(output);
@@ -87,12 +90,13 @@ std::string cc_cmd(Interpreter &it, const std::string &input,
   return cmd;
 }
 
-std::string cxx_cmd(Interpreter &it, const std::string &input,
+// C++ compile command
+std::string cxx_cmd(Consts &data, const std::string &input,
                     const std::string &output) {
-  const auto &cxx = it.get_value("CXX");
-  const auto &flags = it.get_vector("CXXFLAGS");
-  const auto &includes = it.get_vector("INCLUDE");
-  const auto &defines = it.get_vector("DEFINES");
+  const auto &cxx = data.get_string("CXX");
+  const auto &flags = data.get_vector("CXXFLAGS");
+  const auto &includes = data.get_vector("INCLUDE");
+  const auto &defines = data.get_vector("DEFINES");
 
   std::string cmd =
       *cxx + " -c " + make_absolute(input) + " -o " + make_absolute(output);
@@ -109,10 +113,11 @@ std::string cxx_cmd(Interpreter &it, const std::string &input,
   return cmd;
 }
 
-std::string as_cmd(Interpreter &it, const std::string &input,
+// Assembler command
+std::string as_cmd(Consts &data, const std::string &input,
                    const std::string &output) {
-  const auto &as = it.get_value("AS");
-  const auto &flags = it.get_vector("ASFLAGS");
+  const auto &as = data.get_string("AS");
+  const auto &flags = data.get_vector("ASFLAGS");
 
   std::string cmd = *as + " -o " + output + " " + input;
 
@@ -122,13 +127,14 @@ std::string as_cmd(Interpreter &it, const std::string &input,
   return cmd;
 }
 
-std::string ld_cmd(Interpreter &it, const std::vector<std::string> &objs) {
-  const auto &dir = it.get_value("BUILD_DIR");
-  const auto &target = it.get_value("TARGET");
+// Linker command
+std::string ld_cmd(Consts &data, const std::vector<std::string> &objs) {
+  const auto &dir = data.get_string("BUILD_DIR");
+  const auto &target = data.get_string("TARGET");
 
-  const auto &ld = it.get_value("LD");
-  const auto &flags = it.get_vector("LDFLAGS");
-  const auto &libs = it.get_vector("LIBS");
+  const auto &ld = data.get_string("LD");
+  const auto &flags = data.get_vector("LDFLAGS");
+  const auto &libs = data.get_vector("LIBS");
 
   std::string cmd = *ld + " -o " + *dir + "/" + *target;
 
@@ -144,10 +150,12 @@ std::string ld_cmd(Interpreter &it, const std::vector<std::string> &objs) {
   return cmd;
 }
 
+// Generating compile_commands.json for `clangd` LSP
 void write_compile_commands(
+    std::string dir,
     const std::vector<std::tuple<std::string, std::string, std::string>>
         &entries) {
-  std::ofstream out("compile_commands.json");
+  std::ofstream out(dir + "compile_commands.json");
   out << "[\n";
   for (size_t i = 0; i < entries.size(); ++i) {
     const auto &[file, dir, command] = entries[i];
@@ -163,39 +171,44 @@ void write_compile_commands(
   out << "]\n";
 }
 
-void Builder::build(Interpreter it) {
+// Main build process
+void Builder::build(Consts data) {
   log("SBS TOOL");
-  log(*it.get_value("PROJECT") + " BUILDING");
+  log(*data.get_string("PROJECT") + " BUILDING");
 
-  if (auto opt = it.get_vector("PRE_BUILD")) {
-    for (auto &cmd : *opt) {
+  // Executing $PRE_BUILD
+  if (auto opt = data.get_vector("PRE_BUILD"))
+    for (auto &cmd : *opt)
       log(exec(cmd));
-    }
-  }
 
-  if (auto opt = it.get_value("BUILD_DIR"))
+  // Creating build directory ($BUILD_DIR)
+  if (auto opt = data.get_string("BUILD_DIR"))
     exec("mkdir " + *opt);
 
+  // Data for compile_commands: file, dir, command
   std::vector<std::tuple<std::string, std::string, std::string>>
       compile_entries;
   std::string cwd = std::filesystem::current_path().string();
 
+  // Compilation output, for linking.
   std::vector<std::string> objs;
-  if (auto opt = it.get_vector("SOURCES")) {
+  if (auto opt = data.get_vector("SOURCES")) {
     for (auto &input : *opt) {
+      // File type, eg. `.c`, `.cpp` or `.as`
       SourceType type = get_source_type(std::string(input));
+      // Obj file from ordinary file
       std::string output = to_obj_path(std::string(input));
 
       std::string cmd;
       switch (type) {
       case SourceType::C:
-        cmd = cc_cmd(it, input, output);
+        cmd = cc_cmd(data, input, output);
         break;
       case SourceType::CPP:
-        cmd = cxx_cmd(it, input, output);
+        cmd = cxx_cmd(data, input, output);
         break;
       case SourceType::ASM:
-        exec(as_cmd(it, input, output));
+        exec(as_cmd(data, input, output));
         break;
       case SourceType::Unknown:
         std::cerr << "ERROR!: Unknown source file type, " << input << std::endl;
@@ -205,18 +218,19 @@ void Builder::build(Interpreter it) {
 
       compile_entries.push_back({input, cwd, cmd});
       exec(cmd);
-
       objs.push_back(output);
     }
   }
 
-  exec(ld_cmd(it, objs));
+  // Linking
+  exec(ld_cmd(data, objs));
 
-  write_compile_commands(compile_entries);
+  // Generating compile_commands
+  const auto &dir = data.get_string("BUILD_DIR");
+  write_compile_commands(*dir + "/", compile_entries);
 
-  if (auto opt = it.get_vector("POST_BUILD")) {
-    for (const auto &cmd : *opt) {
+  // Executing $POST_BUILD
+  if (auto opt = data.get_vector("POST_BUILD"))
+    for (const auto &cmd : *opt)
       log(exec(cmd));
-    }
-  }
 }

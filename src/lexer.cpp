@@ -1,8 +1,10 @@
 #include "lexer.hpp"
+
 #include <cctype>
 #include <string>
 #include <vector>
 
+// Token To String
 std::string Token::tos() {
   std::string buffer;
   buffer.append("\tTokenType: ");

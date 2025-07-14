@@ -1,42 +1,41 @@
 #include "builder.hpp"
 #include "interpreter.hpp"
 #include "lexer.hpp"
+
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
 
-std::string read_file(std::string path) {
-  std::fstream file(path);
+std::string read_file(const std::string &path) {
+  std::ifstream file(path);
   if (!file) {
-    std::cerr << "ERROR!" << std::endl;
-    std::cerr << "File(" << path << ") could not be opened" << std::endl;
-    exit(1);
+    std::cerr << "ERROR: Could not open file: " << path << std::endl;
+    std::exit(1);
   }
 
   std::stringstream buffer;
   buffer << file.rdbuf();
-
   return buffer.str();
 }
 
 int main(int argc, char *argv[]) {
-  std::string path = "./build.sbs";
-
+  std::string script_path = "./build.sbs";
   if (argc == 2) {
-    path = argv[1];
+    script_path = argv[1];
   }
 
-  std::string data = read_file(path);
+  const std::string source = read_file(script_path);
 
-  Lexer lx;
-  auto tokens = lx.lex(data);
+  Lexer lexer;
+  const auto tokens = lexer.lex(source);
 
-  Interpreter it;
-  auto consts = it.interpret(tokens);
+  Interpreter interpreter;
+  Consts consts = interpreter.interpret(tokens);
 
-  Builder bl;
-  bl.build(it);
+  Builder builder;
+  builder.build(consts);
 
   return 0;
 }
