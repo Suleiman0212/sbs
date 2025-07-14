@@ -182,10 +182,10 @@ void Builder::build(Consts data) {
       log(exec(cmd));
 
   // Creating build directory ($BUILD_DIR)
-  if (auto opt = data.get_string("BUILD_DIR"))
+  exec("rm -rf " + *data.get_string("BUILD_DIR") + "/");
+  if (auto opt = data.get_string("BUILD_DIR")) {
     exec("mkdir " + *opt);
-
-  // Data for compile_commands: file, dir, command
+  }
   std::vector<std::tuple<std::string, std::string, std::string>>
       compile_entries;
   std::string cwd = std::filesystem::current_path().string();

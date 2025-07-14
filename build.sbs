@@ -9,5 +9,3 @@ $CXXFLAGS [ '-std=c++20' ]
 
 $SOURCES [ 'src/main.cpp' 'src/lexer.cpp' 'src/interpreter.cpp' 'src/dsl.cpp' 'src/builder.cpp' ]
 $INCLUDE [ 'include' ]
-
-$PRE_BUILD [ 'rm -rf build' ]
